@@ -55,7 +55,9 @@ public class ProblemCase {
         while (lineScan.hasNext()) {
             String currentLocName = lineScan.next();
             Student s = new Student();
-            s.home = nameLocationTracker.get(currentLocName);
+            Location studentHome = nameLocationTracker.get(currentLocName);
+            s.home = studentHome;
+            studentHome.isHome = true;
             this.students.add(s);
         }
 

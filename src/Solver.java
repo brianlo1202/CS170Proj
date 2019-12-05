@@ -71,8 +71,74 @@ public class Solver {
 
         ArrayList<Location> clusterCenters = new ArrayList<Location>();
 
+        //add first Cluster center
+        prob.startLoc.isClusterCenter = true;
+        clusterCenters.add(prob.startLoc);
+
+        for (int currentNumClusterCenters = 1; currentNumClusterCenters < numClusterCenters; currentNumClusterCenters++) {
+            Location newClusterCenter = genNextClusterCenter(prob, clusterCenters);
+            newClusterCenter.isClusterCenter = true;
+            clusterCenters.add(newClusterCenter);
+        }
+
+        //associate all homes with center
+        for (Location l: prob.locations) {
+            if (l.isHome) {
+                Location currentClosestCenter = null;
+                double currentClosestCenterDist = Double.MAX_VALUE;
+
+                for (Location center: clusterCenters) {
+
+                    double dist = l.Dikstras(center);
+                    if (dist < currentClosestCenterDist) {
+                        currentClosestCenter = center;
+                        currentClosestCenterDist = dist;
+
+                        if (center == l) { //if home is center
+                            break;
+                        }
+                    }
+                }
+
+                currentClosestCenter.nonCentersAssociatedWithMe.add(l);
+            }
+        }
 
         return "I tried my best :(";
+    }
+
+    /**
+     * return Loc furthest from all current Cluster Centers
+     * @return
+     */
+    private static Location genNextClusterCenter(ProblemCase prob, ArrayList<Location> currentClusterCenters) {
+        /**
+         * for all non center locs:
+         *  calc sum of dists from all centers
+         *  return loc w/ max of this val
+         */
+        Location currentFarthestLoc = null;
+        double currentLargestTotalDist = Double.MIN_VALUE;
+
+        for (Location l: prob.locations) {
+            if (!l.isClusterCenter) {
+
+                //add up all dists to all centers
+                double totalDist = 0;
+                for (Location center: currentClusterCenters) {
+                    double distToCenter = l.Dikstras(center);
+                    //TODO cache already calculated dists
+                    totalDist += distToCenter;
+                }
+
+                if (totalDist > currentLargestTotalDist) {
+                    currentFarthestLoc = l;
+                    currentLargestTotalDist = totalDist;
+                }
+            }
+        }
+
+        return currentFarthestLoc;
     }
 
     public static void main(String[] args) throws FileNotFoundException {

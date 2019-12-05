@@ -41,40 +41,7 @@ public class State {
 
     public float Dikstras(Location goalLoc) {
 
-        HashMap<String, Boolean> visitedTracker = new HashMap<String, Boolean>();
-        HashMap<String, Float> cumCostTracker = new HashMap<String, Float>();
-        HashMap<String, Float> heurTracker = new HashMap<String, Float>();
-
-        LocationComparator pqComparator = new LocationComparator(cumCostTracker, heurTracker);
-        PriorityQueue<Location> pq = new PriorityQueue<Location>(4, pqComparator);
-        pq.add(this.currentLocation);
-        visitedTracker.put(this.currentLocation.name, true);
-        cumCostTracker.put(this.currentLocation.name, 0f);
-
-        while (!pq.isEmpty()) {
-            Location currentLoc = pq.remove();
-            String currentLocName = currentLoc.name;
-
-            if (currentLocName.equals(goalLoc.name)) {
-                return cumCostTracker.get(currentLocName);
-            }
-
-            for (Location child: currentLoc.children) {
-                if (!visitedTracker.getOrDefault(child.name, false)) {
-
-                    //mark as visited
-                    visitedTracker.put(child.name, true);
-
-                    //cumCost
-                    float parentCumCost = cumCostTracker.get(currentLocName);
-                    float distParentToChild = currentLoc.edgeLengths.get(child.name);
-                    cumCostTracker.put(child.name, parentCumCost + distParentToChild);
-
-                    pq.add(child);
-                }
-            }
-        }
-        return Float.MAX_VALUE; //shouldn't happen, case city no exist
+        return (float)this.currentLocation.Dikstras(goalLoc);
     }
 
     public ArrayList<Action> nextPossibleActions() {
