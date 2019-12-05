@@ -47,7 +47,9 @@ public class Solver {
         return "I tried my best :(";
     }
 
-    public static String solveViaKClustering(ProblemCase prob) {
+    public ArrayList<Location> clusterCenters;
+
+    public ArrayList<Action> solveViaKClustering(ProblemCase prob) {
         /**
          * pick #homes/10??? cluster centers
          * clusterCenter1 = startLoc
@@ -66,7 +68,7 @@ public class Solver {
         int numClusterCenters = prob.students.size() / 10;
         // case # students less than 10
         if (numClusterCenters == 0) {
-            numClusterCenters = 2;
+            numClusterCenters = 3;
         }
 
         ArrayList<Location> clusterCenters = new ArrayList<Location>();
@@ -81,59 +83,106 @@ public class Solver {
             clusterCenters.add(newClusterCenter);
         }
 
-        //associate all homes with center
-        for (Location l: prob.locations) {
-            if (l.isHome) {
-                Location currentClosestCenter = null;
-                double currentClosestCenterDist = Double.MAX_VALUE;
+        //associate all students with center
+        for (Student s: prob.students) {
+            Location closestCenter = getClosestCenter(s.home, clusterCenters);
+            closestCenter.studentsDroppedOffHere.add(s);
 
-                for (Location center: clusterCenters) {
+        }
 
-                    double dist = l.Dikstras(center);
-                    if (dist < currentClosestCenterDist) {
-                        currentClosestCenter = center;
-                        currentClosestCenterDist = dist;
+        ArrayList<Action> plan = new ArrayList<Action>();
 
-                        if (center == l) { //if home is center
-                            break;
-                        }
-                    }
+        /**
+         * make drop offs at current center
+         * go to next center
+         */
+        Location currentCenter = prob.startLoc;
+        for (int currentCenterNum = 1; currentCenterNum <= numClusterCenters; currentCenterNum++) {
+            currentCenter.visited = true;
+            for (Student s : currentCenter.studentsDroppedOffHere) {
+                Action_DropOff a = new Action_DropOff();
+                a.student = s;
+                plan.add(a);
+            }
+
+            //det next loc to travel to
+            Location nextCenter = null;
+            if (currentCenterNum != numClusterCenters) {
+                nextCenter = getClosestCenter(currentCenter, clusterCenters);
+            } else {
+                nextCenter = prob.startLoc;
+            }
+
+            LinkedList<Location> pathToNextCenter = currentCenter.DikstrasPath(nextCenter);
+
+            for (Location l: pathToNextCenter) {
+                Action_Move a = new Action_Move();
+                a.locationToMoveTo = l;
+                plan.add(a);
+            }
+
+            currentCenter = nextCenter;
+
+        }
+
+        actionPlanToFile(prob, plan, clusterCenters);
+
+        return plan;
+    }
+
+    private Location getClosestCenter(Location l, ArrayList<Location> clusterCenters) {
+        Location currentClosestCenter = null;
+        double currentClosestCenterDist = Double.MAX_VALUE;
+
+        for (Location center: clusterCenters) {
+
+            if (center.visited) { //important when path planning
+                continue;
+            }
+
+            double dist = l.Dikstras(center);
+            if (dist < currentClosestCenterDist) {
+                currentClosestCenter = center;
+                currentClosestCenterDist = dist;
+
+                if (center == l) { //if home is center
+                    break;
                 }
-
-                currentClosestCenter.nonCentersAssociatedWithMe.add(l);
             }
         }
 
-        return "I tried my best :(";
+        return currentClosestCenter;
     }
 
     /**
-     * return Loc furthest from all current Cluster Centers
+     * return Loc furthest from all current Cluster Centers (maximizes min dist)
      * @return
      */
-    private static Location genNextClusterCenter(ProblemCase prob, ArrayList<Location> currentClusterCenters) {
+    private Location genNextClusterCenter(ProblemCase prob, ArrayList<Location> currentClusterCenters) {
         /**
          * for all non center locs:
          *  calc sum of dists from all centers
          *  return loc w/ max of this val
          */
         Location currentFarthestLoc = null;
-        double currentLargestTotalDist = Double.MIN_VALUE;
+        double currentBestMaxMinDist = Double.MIN_VALUE;
 
         for (Location l: prob.locations) {
             if (!l.isClusterCenter) {
 
                 //add up all dists to all centers
-                double totalDist = 0;
+                double currentMinDist = Double.MAX_VALUE;
                 for (Location center: currentClusterCenters) {
                     double distToCenter = l.Dikstras(center);
                     //TODO cache already calculated dists
-                    totalDist += distToCenter;
+                    if (distToCenter < currentMinDist) {
+                        currentMinDist = distToCenter;
+                    }
                 }
 
-                if (totalDist > currentLargestTotalDist) {
+                if (currentMinDist > currentBestMaxMinDist) {
                     currentFarthestLoc = l;
-                    currentLargestTotalDist = totalDist;
+                    currentBestMaxMinDist = currentMinDist;
                 }
             }
         }
@@ -141,9 +190,37 @@ public class Solver {
         return currentFarthestLoc;
     }
 
+    public void actionPlanToFile(ProblemCase prob, ArrayList<Action> plan,
+                                 ArrayList<Location> clusterCenters) {
+
+        String path = prob.startLoc.name;
+        String numDropOffLocs = clusterCenters.size() + "" + '\n';
+        String dropOffsList = "";
+
+        for (Action a: plan) {
+            if (a instanceof Action_Move) {
+                path += " " + ((Action_Move)a).locationToMoveTo.name;
+            }
+        }
+        path += '\n';
+
+        for (Location center: clusterCenters) {
+            dropOffsList += center.name;
+            for (Student s: center.studentsDroppedOffHere) {
+                dropOffsList += " " + s.home.name;
+            }
+            dropOffsList += '\n';
+        }
+
+        System.out.print(path);
+        System.out.print(numDropOffLocs);
+        System.out.print(dropOffsList);
+
+    }
+
     public static void main(String[] args) throws FileNotFoundException {
         ProblemCase prob1 = new ProblemCase("6.in");
-        String result = solveViaKClustering(prob1);
-        System.out.println(result);
+        Solver solver = new Solver();
+        ArrayList<Action> result = solver.solveViaKClustering(prob1);
     }
 }
