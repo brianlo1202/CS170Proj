@@ -49,13 +49,35 @@ public class Solver {
 
     public static String solveViaKClustering(ProblemCase prob) {
         /**
-         * 
+         * pick #homes/10??? cluster centers
+         * clusterCenter1 = startLoc
+         * next clusters: loc furtherst from current centers
+         *
+         * put all centers in list
+         *
+         * for all non centers:
+         *  associate with closest center
+         *
+         * action list:
+         * at current cluster center, dep corr students
+         * go to next cluster center, repeat
          */
+
+        int numClusterCenters = prob.students.size() / 10;
+        // case # students less than 10
+        if (numClusterCenters == 0) {
+            numClusterCenters = 2;
+        }
+
+        ArrayList<Location> clusterCenters = new ArrayList<Location>();
+
+
+        return "I tried my best :(";
     }
 
     public static void main(String[] args) throws FileNotFoundException {
         ProblemCase prob1 = new ProblemCase("6.in");
-        String result = solve(prob1);
+        String result = solveViaKClustering(prob1);
         System.out.println(result);
     }
 }
