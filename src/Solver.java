@@ -1,4 +1,5 @@
-import java.io.FileNotFoundException;
+import java.io.BufferedWriter;
+import java.io.*;
 import java.util.*;
 public class Solver {
     public static String solve(ProblemCase prob) {
@@ -49,7 +50,7 @@ public class Solver {
 
     public ArrayList<Location> clusterCenters;
 
-    public ArrayList<Action> solveViaKClustering(ProblemCase prob) {
+    public ArrayList<Action> solveViaKClustering(ProblemCase prob) throws IOException {
         /**
          * pick #homes/10??? cluster centers
          * clusterCenter1 = startLoc
@@ -65,7 +66,7 @@ public class Solver {
          * go to next cluster center, repeat
          */
 
-        int numClusterCenters = prob.students.size() / 10;
+        int numClusterCenters = prob.students.size() / 10; //k
         // case # students less than 10
         if (numClusterCenters == 0) {
             numClusterCenters = 3;
@@ -191,10 +192,9 @@ public class Solver {
     }
 
     public void actionPlanToFile(ProblemCase prob, ArrayList<Action> plan,
-                                 ArrayList<Location> clusterCenters) {
+                                 ArrayList<Location> clusterCenters) throws IOException{
 
         String path = prob.startLoc.name;
-        String numDropOffLocs = clusterCenters.size() + "" + '\n';
         String dropOffsList = "";
 
         for (Action a: plan) {
@@ -204,23 +204,52 @@ public class Solver {
         }
         path += '\n';
 
+        int numDropOffLocs = 0;
         for (Location center: clusterCenters) {
-            dropOffsList += center.name;
-            for (Student s: center.studentsDroppedOffHere) {
-                dropOffsList += " " + s.home.name;
+            if (!center.studentsDroppedOffHere.isEmpty()) { //actually use this loc
+
+                numDropOffLocs++;
+
+                dropOffsList += center.name;
+                for (Student s : center.studentsDroppedOffHere) {
+                    dropOffsList += " " + s.home.name;
+                }
+                dropOffsList += '\n';
             }
-            dropOffsList += '\n';
         }
 
-        System.out.print(path);
-        System.out.print(numDropOffLocs);
-        System.out.print(dropOffsList);
+        String numDropOffLocsText = numDropOffLocs + "" + '\n';
+
+        //System.out.print(path);
+        //System.out.print(numDropOffLocs);
+        //System.out.print(dropOffsList);
+
+
+        String str = path + numDropOffLocsText + dropOffsList;
+        String fileName = prob.fileName.substring(0, prob.fileName.length() - 3) + ".out";
+        BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
+        writer.write(str);
+        writer.close();
+
 
     }
 
-    public static void main(String[] args) throws FileNotFoundException {
-        ProblemCase prob1 = new ProblemCase("6.in");
+    public static void main(String[] args) throws IOException {
         Solver solver = new Solver();
-        ArrayList<Action> result = solver.solveViaKClustering(prob1);
+        int taskNum = 1;
+
+        String folderPath = System.getProperty("user.dir") + "/input/";
+        File folder = new File(folderPath);
+        File[] listOfFiles = folder.listFiles();
+
+        for (int i = 0; i < listOfFiles.length; i++) {
+            String fileName = listOfFiles[i].getName();
+            if (fileName.substring(fileName.length() - 3).equals(".in")) {
+                System.out.println("working on input " + taskNum + ": " + fileName);
+                taskNum++;
+                ProblemCase prob = new ProblemCase(fileName);
+                solver.solveViaKClustering(prob);
+            }
+        }
     }
 }

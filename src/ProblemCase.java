@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.Scanner;
 
 public class ProblemCase {
+    String fileName;
     ArrayList<Location> locations;
     ArrayList<Student> students;
     Location startLoc;
@@ -15,17 +16,19 @@ public class ProblemCase {
      * @throws FileNotFoundException
      */
     public ProblemCase (String fileName) throws FileNotFoundException {
+        this.fileName = fileName;
+
         //set up scanner to read file
 
-        String currentPath = System.getProperty("user.dir") + "/src/";
+        String currentPath = System.getProperty("user.dir") + "/input/";
         File file = new File(currentPath + fileName);
         Scanner scan = new Scanner(file);
 
-        int numLocs = Integer.parseInt(scan.nextLine());
-        int numHomes = Integer.parseInt(scan.nextLine());
+        int numLocs = Integer.parseInt(scan.nextLine().trim());
+        int numHomes = Integer.parseInt(scan.nextLine().trim());
         String listOfLocNames = scan.nextLine();
         String listOfStudentHomeNames = scan.nextLine();
-        String startLocName = scan.nextLine();
+        String startLocName = scan.nextLine().trim();
 
         //init locations list
         //for helping init students
@@ -91,6 +94,6 @@ public class ProblemCase {
     }
 
     public static void main (String[] args) throws FileNotFoundException {
-        ProblemCase prob1 = new ProblemCase("50.in");
+        ProblemCase prob1 = new ProblemCase("input/50.in");
     }
 }
