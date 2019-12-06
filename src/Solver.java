@@ -66,9 +66,9 @@ public class Solver {
          * go to next cluster center, repeat
          */
 
-        int numClusterCenters = prob.students.size() / 10; //k
+        int numClusterCenters = prob.students.size() / 5; //k
         // case # students less than 10
-        if (numClusterCenters == 0) {
+        if (prob.students.size() <= 10) {
             numClusterCenters = 3;
         }
 
@@ -127,8 +127,8 @@ public class Solver {
         }
 
         actionPlanToFile(prob, plan, clusterCenters);
-        double cost = actionPlanToCost(prob, plan, clusterCenters);
-        System.out.println("cost: " + cost);
+        //double cost = actionPlanToCost(prob, plan, clusterCenters);
+        //System.out.println("cost: " + cost);
         System.out.println();
 
         return plan;
@@ -223,9 +223,9 @@ public class Solver {
 
         String numDropOffLocsText = numDropOffLocs + "" + '\n';
 
-        System.out.print(path);
-        System.out.print(numDropOffLocs);
-        System.out.print(dropOffsList);
+        //System.out.print(path);
+        //System.out.print(numDropOffLocsText);
+        //System.out.print(dropOffsList);
 
 
         String str = path + numDropOffLocsText + dropOffsList;
