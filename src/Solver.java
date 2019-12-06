@@ -127,6 +127,9 @@ public class Solver {
         }
 
         actionPlanToFile(prob, plan, clusterCenters);
+        double cost = actionPlanToCost(prob, plan, clusterCenters);
+        System.out.println("cost: " + cost);
+        System.out.println();
 
         return plan;
     }
@@ -220,9 +223,9 @@ public class Solver {
 
         String numDropOffLocsText = numDropOffLocs + "" + '\n';
 
-        //System.out.print(path);
-        //System.out.print(numDropOffLocs);
-        //System.out.print(dropOffsList);
+        System.out.print(path);
+        System.out.print(numDropOffLocs);
+        System.out.print(dropOffsList);
 
 
         String str = path + numDropOffLocsText + dropOffsList;
@@ -232,6 +235,33 @@ public class Solver {
         writer.close();
 
 
+    }
+
+    public double actionPlanToCost(ProblemCase prob, ArrayList<Action> plan,
+                                   ArrayList<Location> clusterCenters) throws IOException {
+        double currentCost = 0.0f;
+        Location currentLocation = prob.startLoc;
+
+        for (Action a: plan) {
+            if (a instanceof Action_Move) {
+                Location locMovedTo = ((Action_Move)a).locationToMoveTo;
+                double moveDist = currentLocation.Dikstras(locMovedTo);
+                double moveCost = 2.0/3.0 * moveDist;
+
+                currentCost += moveCost;
+                currentLocation = locMovedTo;
+            } else { //a is a drop off
+                Student droppedOffStudent = ((Action_DropOff)a).student;
+                Location studentHome = droppedOffStudent.home;
+                double walkDist = currentLocation.Dikstras(studentHome);
+                double walkCost = walkDist * 1.0;
+
+                currentCost += walkCost;
+            }
+        }
+
+
+        return currentCost;
     }
 
     public static void main(String[] args) throws IOException {
