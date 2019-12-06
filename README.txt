@@ -1,0 +1,2 @@
+How to run:
+The main solver is written in java. Open Solver.java (in the src folder) and run its main method. It reads every input file in folder "input" and writes out output files. The "input" folder must be on the same level as the "src" folder.
